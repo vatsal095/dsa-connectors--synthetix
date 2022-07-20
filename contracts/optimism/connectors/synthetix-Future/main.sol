@@ -69,6 +69,7 @@ abstract contract SynthetixFutureResolver is DSMath,Events, Helpers {
     {
         uint256 spotPrice = getSpotPrice(currencyKey);
         uint256 basisOpenAmount = div(amount, 2);
+        uint256 currency = underlyingReceivedForOpen(basisOpenAmount, currencyKey); // converting sUSD to sETH(any assets)
         uint256 totalPosition = mul(spotPrice,basisOpenAmount);
         uint256 futuresCost = div(totalPosition,1); //with 1x leverage
         uint256 underlyingReceived = underlyingReceivedForOpen(totalPosition, currencyKey);
@@ -77,17 +78,18 @@ abstract contract SynthetixFutureResolver is DSMath,Events, Helpers {
     }
     function closeBasisTrading(
         uint amount, 
-        bytes32 currencyKey
+        bytes32 currencyKey,
+        uint underlyingReceivedamount
 
     )
     external
     payable
     {
         uint256 spotPrice = getSpotPrice(currencyKey);
-        uint256 basisCloseAmount = div(amount,2);
-        uint256 sUSDReceived = underlyingReceivedForClose(basisCloseAmount, currencyKey);
+        uint256 sUSDReceived = underlyingReceivedForClose(underlyingReceivedamount, currencyKey);
         uint256 totalMargin = totalMargin(msg.sender);
-        uint256 marginToWithdraw = mul(basisCloseAmount,totalMargin);
+        uint256 currency = underlyingReceivedForClose(amount, currencyKey); // converting sUSD to sETH(any assets)
+        uint256 marginToWithdraw = mul(amount,totalMargin);
         futureMarket.modifyPositionWithTracking(int256(amount), bytes32(0));
     }
 
